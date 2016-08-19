@@ -16,7 +16,7 @@ class Product {
     public Product(BigDecimal price, TimestampGenerator timestampGenerator) {
         this.price = price;
         this.timestampGenerator = timestampGenerator;
-        this.lastUpdated = timestampGenerator.getTimestamp();
+        this.lastUpdated = timestampGenerator.getCurrentTimestamp();
     }
 
     public BigDecimal getPrice() {
@@ -25,6 +25,7 @@ class Product {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+        this.lastUpdated = timestampGenerator.getCurrentTimestamp();
     }
 
     public OffsetDateTime getPriceUpdateTime() {

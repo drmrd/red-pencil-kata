@@ -8,7 +8,7 @@ class TimestampGenerator {
     /**
      * Return a timestamp for the current instant.
      */
-    OffsetDateTime getTimestamp() {
+    OffsetDateTime getCurrentTimestamp() {
         return OffsetDateTime.now();
     }
 

@@ -3,15 +3,17 @@ package xyz.danielmoore.redpencilkata;
 import java.time.OffsetDateTime;
 
 class MockTimestampGenerator extends TimestampGenerator {
-    OffsetDateTime lastTimestamp;
+    private OffsetDateTime currentTimestamp;
 
     @Override
-    OffsetDateTime getTimestamp() {
-        lastTimestamp = OffsetDateTime.now();
-        return lastTimestamp;
+    OffsetDateTime getCurrentTimestamp() {
+        if (currentTimestamp == null) {
+            currentTimestamp = OffsetDateTime.now();
+        }
+        return currentTimestamp;
     }
 
-    OffsetDateTime getLastTimestamp() {
-        return lastTimestamp;
+    public void setCurrentTimestamp(OffsetDateTime currentTimestamp) {
+        this.currentTimestamp = currentTimestamp;
     }
 }
