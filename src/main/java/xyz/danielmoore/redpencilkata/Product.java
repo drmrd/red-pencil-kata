@@ -10,12 +10,21 @@ import java.time.OffsetDateTime;
 class Product {
 
     private BigDecimal price;
+    /**
+     * The current rounding mode used in price calculations. ROUND_HALF_EVEN
+     * is also known as banker's rounding and is the standard in currency
+     * calculations.
+     */
+    private static final int ROUNDING_MODE = BigDecimal.ROUND_HALF_EVEN;
+    private static final int CURRENCY_PRECISION = 2;
+    private static final int DIVISION_PRECISION = 4;
+
     private TimestampGenerator timestampGenerator;
     private OffsetDateTime lastUpdated;
     private boolean isPromoted;
 
     public Product(BigDecimal price, TimestampGenerator timestampGenerator) {
-        this.price = price;
+        this.price = price.setScale(CURRENCY_PRECISION);
         this.timestampGenerator = timestampGenerator;
         this.lastUpdated = timestampGenerator.getCurrentTimestamp();
         this.isPromoted = false;
@@ -26,9 +35,12 @@ class Product {
     }
 
     public void setPrice(BigDecimal price) {
-        this.price = price;
+        if (price.divide(this.price, DIVISION_PRECISION, ROUNDING_MODE)
+                .compareTo(new BigDecimal(".95")) <= 0) {
+            this.isPromoted = true;
+        }
+        this.price = price.setScale(CURRENCY_PRECISION);
         this.lastUpdated = timestampGenerator.getCurrentTimestamp();
-        this.isPromoted = true;
     }
 
     public OffsetDateTime getPriceUpdateTime() {

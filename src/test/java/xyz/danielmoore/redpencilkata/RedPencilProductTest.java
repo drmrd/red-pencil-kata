@@ -42,7 +42,7 @@ public class RedPencilProductTest {
 
     @Test
     public void canSetTheCurrentPrice() {
-        BigDecimal twoHundred = new BigDecimal("200");
+        BigDecimal twoHundred = new BigDecimal("200.00");
         product.setPrice(twoHundred);
 
         assertEquals(twoHundred, product.getPrice());
@@ -77,6 +77,12 @@ public class RedPencilProductTest {
     public void changingPriceOnNewProductChangesPromotionStatus() {
         product.setPrice(new BigDecimal("75"));
         assertTrue(product.isPromoted());
+    }
+
+    @Test
+    public void changingPriceLessThan5PercentDoesNotLeadToPromotion() {
+        product.setPrice(new BigDecimal("95.01"));
+        assertFalse(product.isPromoted());
     }
 
     @After
