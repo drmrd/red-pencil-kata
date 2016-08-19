@@ -47,14 +47,9 @@ class Product {
     }
 
     void setPrice(BigDecimal price) {
-        if (this.price.compareTo(price) > 0 && this.lastUpdated.isBefore
-                (timestampGenerator.getCurrentTimestamp().minusDays(30))) {
-            BigDecimal relativeDifference = price.divide(this.price,
-                    DIVISION_PRECISION, ROUNDING_MODE);
-            if (relativeDifference.compareTo(new BigDecimal(".95")) <= 0 &&
-                    relativeDifference.compareTo(new BigDecimal(".70")) >= 0) {
-                this.isPromoted = true;
-            }
+        if (priceChangeShouldCausePromotion(price)) {
+            this.isPromoted = true;
+            // Insert other promo handling code here as needed.
         }
         this.price = price.setScale(CURRENCY_PRECISION);
         this.lastUpdated = timestampGenerator.getCurrentTimestamp();
@@ -66,5 +61,28 @@ class Product {
 
     boolean isPromoted() {
         return isPromoted;
+    }
+
+    private boolean priceChangeShouldCausePromotion(BigDecimal newPrice) {
+        return priceHasBeenStableForThirtyDays() &&
+                priceChangeIsWithinBounds(newPrice);
+    }
+
+    private boolean priceHasBeenStableForThirtyDays() {
+        /*
+         * TODO: Make sure that this also works within 30 days of product
+         *       creation.
+         */
+        return this.lastUpdated.isBefore(timestampGenerator.getCurrentTimestamp().minusDays(30));
+    }
+
+    private boolean priceChangeIsWithinBounds(BigDecimal newPrice) {
+        if (this.price.compareTo(newPrice) > 0) {
+            BigDecimal relativeDifference = newPrice.divide(this.price,
+                    DIVISION_PRECISION, ROUNDING_MODE);
+            return relativeDifference.compareTo(new BigDecimal(".95")) <= 0
+                    && relativeDifference.compareTo(new BigDecimal(".70")) >= 0;
+        }
+        return false;
     }
 }
