@@ -2,6 +2,8 @@ package xyz.danielmoore.redpencilkata;
 
 import java.math.BigDecimal;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -12,23 +14,27 @@ public class RedPencilProductTest {
     private BigDecimal price;
     private TimestampGenerator timestampGenerator;
 
-    @Test
-    public void canCreateProductFromPrice() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         this.timestampGenerator = new TimestampGenerator();
         this.price = new BigDecimal(100);
 
         product = new Product(price, timestampGenerator);
+    }
+
+    @Test
+    public void canCreateProductFromPrice() throws Exception {
         assertNotNull(product);
     }
 
     @Test
     public void canAccessTheCurrentPrice() {
-        this.timestampGenerator = new TimestampGenerator();
-        this.price = new BigDecimal(100);
-
-        product = new Product(price, timestampGenerator);
-
         assertEquals(0, product.getPrice().compareTo(this.price));
+    }
+
+    @After
+    public void tearDown() {
+        product = null;
     }
 
 }
