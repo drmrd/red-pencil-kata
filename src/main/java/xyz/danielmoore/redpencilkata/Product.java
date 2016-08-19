@@ -47,9 +47,13 @@ class Product {
     }
 
     void setPrice(BigDecimal price) {
-        if (price.divide(this.price, DIVISION_PRECISION, ROUNDING_MODE)
-                .compareTo(new BigDecimal(".95")) <= 0) {
-            this.isPromoted = true;
+        if (this.price.compareTo(price) > 0) {
+            BigDecimal relativeDifference = price.divide(this.price,
+                    DIVISION_PRECISION, ROUNDING_MODE);
+            if (relativeDifference.compareTo(new BigDecimal(".95")) <= 0 &&
+                    relativeDifference.compareTo(new BigDecimal(".70")) >= 0) {
+                this.isPromoted = true;
+            }
         }
         this.price = price.setScale(CURRENCY_PRECISION);
         this.lastUpdated = timestampGenerator.getCurrentTimestamp();

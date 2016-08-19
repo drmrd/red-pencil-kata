@@ -85,6 +85,12 @@ public class RedPencilProductTest {
         assertFalse(product.isPromoted());
     }
 
+    @Test
+    public void changingPriceMoreThan30PercentDoesNotLeadToPromotion() {
+        product.setPrice(new BigDecimal("69.9"));
+        assertFalse(product.isPromoted());
+    }
+
     @After
     public void tearDown() {
         product = null;
