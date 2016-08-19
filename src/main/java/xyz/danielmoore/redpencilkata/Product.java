@@ -16,10 +16,14 @@ class Product {
     public Product(BigDecimal price, TimestampGenerator timestampGenerator) {
         this.price = price;
         this.timestampGenerator = timestampGenerator;
-        this.lastUpdated = timestampGenerator.now();
+        this.lastUpdated = timestampGenerator.getTimestamp();
     }
 
     public BigDecimal getPrice() {
         return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
     }
 }

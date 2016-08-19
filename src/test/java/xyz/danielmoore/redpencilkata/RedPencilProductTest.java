@@ -32,6 +32,14 @@ public class RedPencilProductTest {
         assertEquals(0, product.getPrice().compareTo(this.price));
     }
 
+    @Test
+    public void canSetTheCurrentPrice() {
+        BigDecimal twoHundred = new BigDecimal("200");
+        product.setPrice(twoHundred);
+
+        assertEquals(twoHundred, product.getPrice());
+    }
+
     @After
     public void tearDown() {
         product = null;
