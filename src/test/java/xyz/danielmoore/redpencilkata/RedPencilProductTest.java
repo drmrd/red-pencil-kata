@@ -73,6 +73,12 @@ public class RedPencilProductTest {
         assertFalse(product.isPromoted());
     }
 
+    @Test
+    public void changingPriceOnNewProductChangesPromotionStatus() {
+        product.setPrice(new BigDecimal("75"));
+        assertTrue(product.isPromoted());
+    }
+
     @After
     public void tearDown() {
         product = null;

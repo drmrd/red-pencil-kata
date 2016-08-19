@@ -28,6 +28,7 @@ class Product {
     public void setPrice(BigDecimal price) {
         this.price = price;
         this.lastUpdated = timestampGenerator.getCurrentTimestamp();
+        this.isPromoted = true;
     }
 
     public OffsetDateTime getPriceUpdateTime() {
