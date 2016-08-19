@@ -1,12 +1,12 @@
 package xyz.danielmoore.redpencilkata;
 
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 import static org.junit.Assert.*;
 
@@ -14,6 +14,7 @@ public class RedPencilProductTest {
 
     private final BigDecimal TWO_HUNDRED = new BigDecimal("200.00");
     private final BigDecimal ONE_HUNDRED = new BigDecimal("100.00");
+    private final BigDecimal EIGHTY = new BigDecimal("80.00");
     private final BigDecimal SEVENTY_FIVE = new BigDecimal("75.00");
 
     private final OffsetDateTime NOW = OffsetDateTime.now();
@@ -111,6 +112,18 @@ public class RedPencilProductTest {
     @Test
     public void promotionsEndWithin30Days() {
         travelThroughTime(-30);
+        product.setPrice(SEVENTY_FIVE);
+
+        returnToThePresent();
+        assertFalse(product.isPromoted());
+    }
+
+    @Test
+    public void priceChangeDuringPromotionDoesNotExtendPromotionLength() {
+        travelThroughTime(-30);
+        product.setPrice(EIGHTY);
+
+        travelThroughTime(29);
         product.setPrice(SEVENTY_FIVE);
 
         returnToThePresent();

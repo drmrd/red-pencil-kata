@@ -33,6 +33,7 @@ class Product {
 
     private TimestampGenerator timestampGenerator;
     private OffsetDateTime lastUpdated;
+    private OffsetDateTime promotionStartTimestamp;
     private boolean isPromoted;
 
     Product(BigDecimal price, TimestampGenerator timestampGenerator) {
@@ -47,21 +48,33 @@ class Product {
     }
 
     void setPrice(BigDecimal price) {
-        if (priceChangeShouldCausePromotion(price)) {
+        OffsetDateTime updatedTimestamp = timestampGenerator
+                .getCurrentTimestamp();
+        if (!this.isPromoted() && priceChangeShouldCausePromotion(price)) {
             this.isPromoted = true;
+            promotionStartTimestamp = updatedTimestamp;
             // Insert other promo handling code here as needed.
         }
+
         this.price = price.setScale(CURRENCY_PRECISION);
-        this.lastUpdated = timestampGenerator.getCurrentTimestamp();
+        this.lastUpdated = updatedTimestamp;
     }
 
     OffsetDateTime getPriceUpdateTime() {
         return lastUpdated;
     }
 
+    private boolean mostRecentPromotionStartedInLast30Days() {
+        return promotionStartTimestamp.isAfter(timestampGenerator
+                .getCurrentTimestamp().minusDays(30));
+    }
+
+    private boolean promotionHasExpired() {
+        return !(isPromoted && mostRecentPromotionStartedInLast30Days());
+    }
+
     boolean isPromoted() {
-        if (!lastUpdated.isAfter(timestampGenerator.getCurrentTimestamp()
-                .minusDays(30))) {
+        if (promotionHasExpired()) {
             isPromoted = false;
         }
         return isPromoted;
