@@ -68,9 +68,13 @@ public class RedPencilProductTest {
         assertEquals(currentTime, product.getPriceUpdateTime());
     }
 
+    @Test
+    public void canCheckIfProductIsPromoted() {
+        assertFalse(product.isPromoted());
+    }
+
     @After
     public void tearDown() {
         product = null;
     }
-
 }

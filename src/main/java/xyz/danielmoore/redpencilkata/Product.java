@@ -12,11 +12,13 @@ class Product {
     private BigDecimal price;
     private TimestampGenerator timestampGenerator;
     private OffsetDateTime lastUpdated;
+    private boolean isPromoted;
 
     public Product(BigDecimal price, TimestampGenerator timestampGenerator) {
         this.price = price;
         this.timestampGenerator = timestampGenerator;
         this.lastUpdated = timestampGenerator.getCurrentTimestamp();
+        this.isPromoted = false;
     }
 
     public BigDecimal getPrice() {
@@ -30,5 +32,9 @@ class Product {
 
     public OffsetDateTime getPriceUpdateTime() {
         return lastUpdated;
+    }
+
+    public boolean isPromoted() {
+        return isPromoted;
     }
 }
