@@ -18,4 +18,8 @@ class Product {
         this.timestampGenerator = timestampGenerator;
         this.lastUpdated = timestampGenerator.now();
     }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
 }

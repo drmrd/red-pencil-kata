@@ -21,4 +21,14 @@ public class RedPencilProductTest {
         assertNotNull(product);
     }
 
+    @Test
+    public void canAccessTheCurrentPrice() {
+        this.timestampGenerator = new TimestampGenerator();
+        this.price = new BigDecimal(100);
+
+        product = new Product(price, timestampGenerator);
+
+        assertEquals(0, product.getPrice().compareTo(this.price));
+    }
+
 }
