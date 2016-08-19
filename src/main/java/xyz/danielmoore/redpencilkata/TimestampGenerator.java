@@ -5,7 +5,11 @@ import java.time.OffsetDateTime;
 
 class TimestampGenerator {
 
-    public OffsetDateTime now() {
-        return null;
+    /**
+     * Return a timestamp for the current instant.
+     */
+    OffsetDateTime getTimestamp() {
+        return OffsetDateTime.now();
     }
+
 }
