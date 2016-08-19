@@ -8,33 +8,45 @@ import java.time.OffsetDateTime;
  * recent time at which the product's price changed.
  */
 class Product {
-
+    /**
+     * The current price of the product. Storing using BigDecimal gives us
+     * access to convenient arithmetic operations, rounding support, etc.
+     */
     private BigDecimal price;
+
     /**
      * The current rounding mode used in price calculations. ROUND_HALF_EVEN
      * is also known as banker's rounding and is the standard in currency
      * calculations.
      */
     private static final int ROUNDING_MODE = BigDecimal.ROUND_HALF_EVEN;
+
+    /**
+     * The decimal place to which prices should be rounded. The BigDecimal and
+     * Currency packages make this easy to localize by, e.g., creating a
+     * CURRENCY_NAME variable (example: "USD") and setting CURRENCY_PRECISION
+     * equal to getInstance(CURRENCY_NAME).getDefaultFractionDigits().
+     */
     private static final int CURRENCY_PRECISION = 2;
+    // The number of decimal places to round when dividing BigDecimals.
     private static final int DIVISION_PRECISION = 4;
 
     private TimestampGenerator timestampGenerator;
     private OffsetDateTime lastUpdated;
     private boolean isPromoted;
 
-    public Product(BigDecimal price, TimestampGenerator timestampGenerator) {
+    Product(BigDecimal price, TimestampGenerator timestampGenerator) {
         this.price = price.setScale(CURRENCY_PRECISION);
         this.timestampGenerator = timestampGenerator;
         this.lastUpdated = timestampGenerator.getCurrentTimestamp();
         this.isPromoted = false;
     }
 
-    public BigDecimal getPrice() {
+    BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(BigDecimal price) {
+    void setPrice(BigDecimal price) {
         if (price.divide(this.price, DIVISION_PRECISION, ROUNDING_MODE)
                 .compareTo(new BigDecimal(".95")) <= 0) {
             this.isPromoted = true;
@@ -43,11 +55,11 @@ class Product {
         this.lastUpdated = timestampGenerator.getCurrentTimestamp();
     }
 
-    public OffsetDateTime getPriceUpdateTime() {
+    OffsetDateTime getPriceUpdateTime() {
         return lastUpdated;
     }
 
-    public boolean isPromoted() {
+    boolean isPromoted() {
         return isPromoted;
     }
 }
