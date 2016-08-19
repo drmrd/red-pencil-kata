@@ -60,6 +60,9 @@ class Product {
     }
 
     boolean isPromoted() {
+        if (lastUpdated.isBefore(OffsetDateTime.now().minusDays(30))) {
+            isPromoted = false;
+        }
         return isPromoted;
     }
 

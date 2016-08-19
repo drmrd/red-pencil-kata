@@ -108,6 +108,14 @@ public class RedPencilProductTest {
         assertFalse(product.isPromoted());
     }
 
+    @Test
+    public void promotionsEndWithin30Days() {
+        timestampGenerator.setCurrentTimestamp(NOW.minusDays(31));
+        product.setPrice(new BigDecimal("75.00"));
+
+        assertFalse(product.isPromoted());
+    }
+
     @After
     public void tearDown() {
         product = null;
