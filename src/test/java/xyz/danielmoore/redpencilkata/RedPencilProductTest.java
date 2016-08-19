@@ -14,6 +14,7 @@ public class RedPencilProductTest {
 
     private final BigDecimal TWO_HUNDRED = new BigDecimal("200.00");
     private final BigDecimal ONE_HUNDRED = new BigDecimal("100.00");
+    private final BigDecimal SEVENTY_FIVE = new BigDecimal("75.00");
 
     private final OffsetDateTime NOW = OffsetDateTime.now();
 
@@ -80,7 +81,7 @@ public class RedPencilProductTest {
 
     @Test
     public void changingPriceOnNewProductChangesPromotionStatus() {
-        product.setPrice(new BigDecimal("75"));
+        product.setPrice(SEVENTY_FIVE);
         assertTrue(product.isPromoted());
     }
 
@@ -111,7 +112,7 @@ public class RedPencilProductTest {
     @Test
     public void promotionsEndWithin30Days() {
         timestampGenerator.setCurrentTimestamp(NOW.minusDays(31));
-        product.setPrice(new BigDecimal("75.00"));
+        product.setPrice(SEVENTY_FIVE);
 
         assertFalse(product.isPromoted());
     }

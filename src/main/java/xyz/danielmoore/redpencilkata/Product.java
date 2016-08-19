@@ -74,7 +74,7 @@ class Product {
     private boolean priceHasBeenStableForThirtyDays() {
         /*
          * TODO: Make sure that this also works within 30 days of product
-         *       creation.
+         *       creation. (Ambiguous in kata instructions how to handle.)
          */
         return this.lastUpdated.isBefore(timestampGenerator.getCurrentTimestamp().minusDays(30));
     }
