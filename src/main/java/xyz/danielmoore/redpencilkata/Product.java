@@ -60,18 +60,19 @@ class Product {
     }
 
     boolean isPromoted() {
-        if (lastUpdated.isBefore(OffsetDateTime.now().minusDays(30))) {
+        if (!lastUpdated.isAfter(timestampGenerator.getCurrentTimestamp()
+                .minusDays(30))) {
             isPromoted = false;
         }
         return isPromoted;
     }
 
     private boolean priceChangeShouldCausePromotion(BigDecimal newPrice) {
-        return priceHasBeenStableForThirtyDays() &&
-                priceChangeIsWithinBounds(newPrice);
+        return this.hasStablePrice() &&
+                this.priceChangeIsWithinBounds(newPrice);
     }
 
-    private boolean priceHasBeenStableForThirtyDays() {
+    private boolean hasStablePrice() {
         /*
          * TODO: Make sure that this also works within 30 days of product
          *       creation. (Ambiguous in kata instructions how to handle.)

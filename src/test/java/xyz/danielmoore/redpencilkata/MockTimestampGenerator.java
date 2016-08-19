@@ -13,7 +13,11 @@ class MockTimestampGenerator extends TimestampGenerator {
         return currentTimestamp;
     }
 
-    public void setCurrentTimestamp(OffsetDateTime currentTimestamp) {
+    void setCurrentTimestamp(OffsetDateTime currentTimestamp) {
         this.currentTimestamp = currentTimestamp;
+    }
+
+    void addDaysToCurrentTimestamp(int days) {
+        this.currentTimestamp = this.currentTimestamp.plusDays(days);
     }
 }

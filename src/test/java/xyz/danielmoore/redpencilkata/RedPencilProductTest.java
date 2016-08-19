@@ -32,12 +32,12 @@ public class RedPencilProductTest {
         // Set the price update time to January 1st, 2016 at 12AM GMT
         this.creationTime = OffsetDateTime.of(2016, 1, 1, 0, 0, 0, 0,
                 ZoneOffset.ofHours(0));
-        this.currentTime = NOW;
 
         timestampGenerator.setCurrentTimestamp(creationTime);
         product = new Product(price, timestampGenerator);
 
-        timestampGenerator.setCurrentTimestamp(currentTime);
+        // Set the timestampGenerator equal to NOW
+        returnToThePresent();
     }
 
     @Test
@@ -65,13 +65,12 @@ public class RedPencilProductTest {
     @Test
     public void settingANewPriceUpdatesBothThePriceAndTime() {
         assertEquals(-1, product.getPrice().compareTo(TWO_HUNDRED));
-        assertTrue(product.getPriceUpdateTime().isBefore(this.currentTime));
+        assertTrue(product.getPriceUpdateTime().isBefore(NOW));
 
-        this.timestampGenerator.setCurrentTimestamp(this.currentTime);
         product.setPrice(TWO_HUNDRED);
 
         assertEquals(0, product.getPrice().compareTo(TWO_HUNDRED));
-        assertEquals(this.currentTime, product.getPriceUpdateTime());
+        assertEquals(NOW, product.getPriceUpdateTime());
     }
 
     @Test
@@ -99,26 +98,36 @@ public class RedPencilProductTest {
 
     @Test
     public void aPriceChangeWithin30DaysOfThePreviousPriceChangeDoesNotLeadToPromotion() {
-        timestampGenerator.setCurrentTimestamp(NOW.minusDays(15));
+        travelThroughTime(-15);
         product.setPrice(TWO_HUNDRED);
         assertFalse(product.isPromoted());
 
         BigDecimal cheatingPromoPrice = new BigDecimal("140.00");
-        timestampGenerator.setCurrentTimestamp(NOW);
+        returnToThePresent();
         product.setPrice(cheatingPromoPrice);
         assertFalse(product.isPromoted());
     }
 
     @Test
     public void promotionsEndWithin30Days() {
-        timestampGenerator.setCurrentTimestamp(NOW.minusDays(31));
+        travelThroughTime(-30);
         product.setPrice(SEVENTY_FIVE);
 
+        returnToThePresent();
         assertFalse(product.isPromoted());
     }
 
     @After
     public void tearDown() {
         product = null;
+        returnToThePresent();
+    }
+
+    private void returnToThePresent() {
+        timestampGenerator.setCurrentTimestamp(NOW);
+    }
+
+    private void travelThroughTime(int daysToTravel) {
+        timestampGenerator.addDaysToCurrentTimestamp(daysToTravel);
     }
 }
