@@ -37,7 +37,8 @@ class Product {
     private boolean isPromoted;
 
     Product(BigDecimal price, TimestampGenerator timestampGenerator) {
-        this.price = price.setScale(CURRENCY_PRECISION);
+        // Round the input price to the nearest cent before use
+        this.price = price.setScale(CURRENCY_PRECISION, ROUNDING_MODE);
         this.timestampGenerator = timestampGenerator;
         this.lastUpdated = timestampGenerator.getCurrentTimestamp();
         this.isPromoted = false;
@@ -48,20 +49,35 @@ class Product {
     }
 
     void setPrice(BigDecimal price) {
+        price = price.setScale(CURRENCY_PRECISION, ROUNDING_MODE);
+
         OffsetDateTime updatedTimestamp = timestampGenerator
                 .getCurrentTimestamp();
         if (!this.isPromoted() && priceChangeShouldCausePromotion(price)) {
             this.isPromoted = true;
             promotionStartTimestamp = updatedTimestamp;
             // Insert other promo handling code here as needed.
+        } else if (priceChangeShouldEndPromotion(price)) {
+            this.isPromoted = false;
         }
 
-        this.price = price.setScale(CURRENCY_PRECISION);
+        this.price = price;
         this.lastUpdated = updatedTimestamp;
     }
 
     OffsetDateTime getPriceUpdateTime() {
         return lastUpdated;
+    }
+
+    boolean isPromoted() {
+        if (promotionHasExpired()) {
+            isPromoted = false;
+        }
+        return isPromoted;
+    }
+
+    private boolean priceChangeShouldEndPromotion(BigDecimal price) {
+        return this.price.compareTo(price) < 0;
     }
 
     private boolean mostRecentPromotionStartedInLast30Days() {
@@ -71,13 +87,6 @@ class Product {
 
     private boolean promotionHasExpired() {
         return !(isPromoted && mostRecentPromotionStartedInLast30Days());
-    }
-
-    boolean isPromoted() {
-        if (promotionHasExpired()) {
-            isPromoted = false;
-        }
-        return isPromoted;
     }
 
     private boolean priceChangeShouldCausePromotion(BigDecimal newPrice) {

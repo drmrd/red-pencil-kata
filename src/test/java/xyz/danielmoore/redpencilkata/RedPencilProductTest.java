@@ -130,6 +130,16 @@ public class RedPencilProductTest {
         assertFalse(product.isPromoted());
     }
 
+    @Test
+    public void increasingPriceDuringPromotionEndsThePromotion() {
+        travelThroughTime(-1);
+        product.setPrice(SEVENTY_FIVE);
+
+        returnToThePresent();
+        product.setPrice(EIGHTY);
+        assertFalse(product.isPromoted());
+    }
+
     @After
     public void tearDown() {
         product = null;
