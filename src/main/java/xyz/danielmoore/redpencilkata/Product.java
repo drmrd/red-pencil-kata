@@ -47,7 +47,8 @@ class Product {
     }
 
     void setPrice(BigDecimal price) {
-        if (this.price.compareTo(price) > 0) {
+        if (this.price.compareTo(price) > 0 && this.lastUpdated.isBefore
+                (timestampGenerator.getCurrentTimestamp().minusDays(30))) {
             BigDecimal relativeDifference = price.divide(this.price,
                     DIVISION_PRECISION, ROUNDING_MODE);
             if (relativeDifference.compareTo(new BigDecimal(".95")) <= 0 &&

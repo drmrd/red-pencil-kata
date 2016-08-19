@@ -16,6 +16,7 @@ public class RedPencilProductTest {
     private BigDecimal price;
     private MockTimestampGenerator timestampGenerator;
     private OffsetDateTime creationTime;
+    private OffsetDateTime today;
 
     @Before
     public void setUp() throws Exception {
@@ -25,9 +26,12 @@ public class RedPencilProductTest {
         // Set the price update time to January 1st, 2016 at 12AM GMT
         this.creationTime = OffsetDateTime.of(2016, 1, 1, 0, 0, 0, 0,
                 ZoneOffset.ofHours(0));
-        timestampGenerator.setCurrentTimestamp(creationTime);
+        this.today = OffsetDateTime.now();
 
+        timestampGenerator.setCurrentTimestamp(creationTime);
         product = new Product(price, timestampGenerator);
+
+        timestampGenerator.setCurrentTimestamp(today);
     }
 
     @Test
@@ -88,6 +92,22 @@ public class RedPencilProductTest {
     @Test
     public void changingPriceMoreThan30PercentDoesNotLeadToPromotion() {
         product.setPrice(new BigDecimal("69.9"));
+        assertFalse(product.isPromoted());
+    }
+
+    @Test
+    public void aPriceChangeWithin30DaysOfThePreviousPriceChangeDoesNotLeadToPromotion() {
+        OffsetDateTime today = OffsetDateTime.now();
+        OffsetDateTime fifteenDaysAgo = today.minusDays(15);
+        BigDecimal twoHundred = new BigDecimal("200.00");
+        BigDecimal cheatingPromoPrice = new BigDecimal("140.00");
+
+        timestampGenerator.setCurrentTimestamp(fifteenDaysAgo);
+        product.setPrice(twoHundred);
+        assertFalse(product.isPromoted());
+
+        timestampGenerator.setCurrentTimestamp(today);
+        product.setPrice(cheatingPromoPrice);
         assertFalse(product.isPromoted());
     }
 
