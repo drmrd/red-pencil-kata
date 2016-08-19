@@ -12,26 +12,31 @@ import static org.junit.Assert.*;
 
 public class RedPencilProductTest {
 
+    private final BigDecimal TWO_HUNDRED = new BigDecimal("200.00");
+    private final BigDecimal ONE_HUNDRED = new BigDecimal("100.00");
+
+    private final OffsetDateTime NOW = OffsetDateTime.now();
+
     private Product product;
     private BigDecimal price;
     private MockTimestampGenerator timestampGenerator;
     private OffsetDateTime creationTime;
-    private OffsetDateTime today;
+    private OffsetDateTime currentTime;
 
     @Before
     public void setUp() throws Exception {
         this.timestampGenerator = new MockTimestampGenerator();
-        this.price = new BigDecimal(100);
+        this.price = ONE_HUNDRED;
 
         // Set the price update time to January 1st, 2016 at 12AM GMT
         this.creationTime = OffsetDateTime.of(2016, 1, 1, 0, 0, 0, 0,
                 ZoneOffset.ofHours(0));
-        this.today = OffsetDateTime.now();
+        this.currentTime = NOW;
 
         timestampGenerator.setCurrentTimestamp(creationTime);
         product = new Product(price, timestampGenerator);
 
-        timestampGenerator.setCurrentTimestamp(today);
+        timestampGenerator.setCurrentTimestamp(currentTime);
     }
 
     @Test
@@ -46,10 +51,9 @@ public class RedPencilProductTest {
 
     @Test
     public void canSetTheCurrentPrice() {
-        BigDecimal twoHundred = new BigDecimal("200.00");
-        product.setPrice(twoHundred);
+        product.setPrice(TWO_HUNDRED);
 
-        assertEquals(twoHundred, product.getPrice());
+        assertEquals(TWO_HUNDRED, product.getPrice());
     }
 
     @Test
@@ -59,17 +63,14 @@ public class RedPencilProductTest {
 
     @Test
     public void settingANewPriceUpdatesBothThePriceAndTime() {
-        OffsetDateTime currentTime = OffsetDateTime.now();
-        BigDecimal newPrice = new BigDecimal("200");
+        assertEquals(-1, product.getPrice().compareTo(TWO_HUNDRED));
+        assertTrue(product.getPriceUpdateTime().isBefore(this.currentTime));
 
-        assertEquals(-1, product.getPrice().compareTo(newPrice));
-        assertTrue(product.getPriceUpdateTime().isBefore(currentTime));
+        this.timestampGenerator.setCurrentTimestamp(this.currentTime);
+        product.setPrice(TWO_HUNDRED);
 
-        this.timestampGenerator.setCurrentTimestamp(currentTime);
-        product.setPrice(newPrice);
-
-        assertEquals(0, product.getPrice().compareTo(newPrice));
-        assertEquals(currentTime, product.getPriceUpdateTime());
+        assertEquals(0, product.getPrice().compareTo(TWO_HUNDRED));
+        assertEquals(this.currentTime, product.getPriceUpdateTime());
     }
 
     @Test
@@ -97,16 +98,12 @@ public class RedPencilProductTest {
 
     @Test
     public void aPriceChangeWithin30DaysOfThePreviousPriceChangeDoesNotLeadToPromotion() {
-        OffsetDateTime today = OffsetDateTime.now();
-        OffsetDateTime fifteenDaysAgo = today.minusDays(15);
-        BigDecimal twoHundred = new BigDecimal("200.00");
-        BigDecimal cheatingPromoPrice = new BigDecimal("140.00");
-
-        timestampGenerator.setCurrentTimestamp(fifteenDaysAgo);
-        product.setPrice(twoHundred);
+        timestampGenerator.setCurrentTimestamp(NOW.minusDays(15));
+        product.setPrice(TWO_HUNDRED);
         assertFalse(product.isPromoted());
 
-        timestampGenerator.setCurrentTimestamp(today);
+        BigDecimal cheatingPromoPrice = new BigDecimal("140.00");
+        timestampGenerator.setCurrentTimestamp(NOW);
         product.setPrice(cheatingPromoPrice);
         assertFalse(product.isPromoted());
     }
