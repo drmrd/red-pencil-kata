@@ -13,6 +13,7 @@ class Product {
      * access to convenient arithmetic operations, rounding support, etc.
      */
     private BigDecimal price;
+    private BigDecimal preSalePrice;
 
     /**
      * The current rounding mode used in price calculations. ROUND_HALF_EVEN
@@ -39,6 +40,7 @@ class Product {
     Product(BigDecimal price, TimestampGenerator timestampGenerator) {
         // Round the input price to the nearest cent before use
         this.price = price.setScale(CURRENCY_PRECISION, ROUNDING_MODE);
+        this.preSalePrice = this.price;
         this.timestampGenerator = timestampGenerator;
         this.lastUpdated = timestampGenerator.getCurrentTimestamp();
         this.isPromoted = false;
@@ -53,12 +55,14 @@ class Product {
 
         OffsetDateTime updatedTimestamp = timestampGenerator
                 .getCurrentTimestamp();
-        if (!this.isPromoted() && priceChangeShouldCausePromotion(price)) {
+        if (priceChangeShouldCausePromotion(price)) {
             this.isPromoted = true;
-            promotionStartTimestamp = updatedTimestamp;
+            this.preSalePrice = this.price;
+            this.promotionStartTimestamp = updatedTimestamp;
             // Insert other promo handling code here as needed.
         } else if (priceChangeShouldEndPromotion(price)) {
             this.isPromoted = false;
+            this.preSalePrice = price;
         }
 
         this.price = price;
@@ -77,7 +81,8 @@ class Product {
     }
 
     private boolean priceChangeShouldEndPromotion(BigDecimal price) {
-        return this.price.compareTo(price) < 0;
+        return this.price.compareTo(price) < 0 ||
+                !priceChangeIsAtMost30Percent(preSalePrice, price);
     }
 
     private boolean mostRecentPromotionStartedInLast30Days() {
@@ -90,7 +95,7 @@ class Product {
     }
 
     private boolean priceChangeShouldCausePromotion(BigDecimal newPrice) {
-        return this.hasStablePrice() &&
+        return !this.isPromoted() && this.hasStablePrice() &&
                 this.priceChangeIsWithinBounds(newPrice);
     }
 
@@ -100,6 +105,14 @@ class Product {
          *       creation. (Ambiguous in kata instructions how to handle.)
          */
         return this.lastUpdated.isBefore(timestampGenerator.getCurrentTimestamp().minusDays(30));
+    }
+
+    private static boolean priceChangeIsAtMost30Percent(BigDecimal oldPrice,
+                                                        BigDecimal newPrice) {
+        BigDecimal relativeDifference = newPrice.divide(oldPrice,
+                DIVISION_PRECISION, ROUNDING_MODE);
+
+        return relativeDifference.compareTo(new BigDecimal(".70")) >= 0;
     }
 
     private boolean priceChangeIsWithinBounds(BigDecimal newPrice) {

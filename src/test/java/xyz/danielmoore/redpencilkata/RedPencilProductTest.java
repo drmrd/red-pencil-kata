@@ -139,6 +139,18 @@ public class RedPencilProductTest {
         assertFalse(product.isPromoted());
     }
 
+    @Test
+    public void reducingPriceDuringPromotionMoreThan30PercentOfOriginalEndsPromotion() {
+        product.setPrice(SEVENTY_FIVE);
+
+        // An amount less than 70% of original and more than 70% of promo price
+        BigDecimal sixtyFive = new BigDecimal("65.00");
+
+        product.setPrice(sixtyFive);
+
+        assertFalse(product.isPromoted());
+    }
+
     @After
     public void tearDown() {
         product = null;
