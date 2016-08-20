@@ -16,6 +16,7 @@ public class RedPencilProductTest {
     private final BigDecimal ONE_HUNDRED = new BigDecimal("100.00");
     private final BigDecimal EIGHTY = new BigDecimal("80.00");
     private final BigDecimal SEVENTY_FIVE = new BigDecimal("75.00");
+    private final BigDecimal SIXTY_FIVE = new BigDecimal("65.00");
 
     private final OffsetDateTime NOW = OffsetDateTime.now();
 
@@ -143,10 +144,11 @@ public class RedPencilProductTest {
     public void reducingPriceDuringPromotionMoreThan30PercentOfOriginalEndsPromotion() {
         product.setPrice(SEVENTY_FIVE);
 
-        // An amount less than 70% of original and more than 70% of promo price
-        BigDecimal sixtyFive = new BigDecimal("65.00");
-
-        product.setPrice(sixtyFive);
+        /*
+         * Set product to an amount less than 70% of original and more than 70%
+         * of promo price
+         */
+        product.setPrice(SIXTY_FIVE);
 
         assertFalse(product.isPromoted());
     }
@@ -157,9 +159,30 @@ public class RedPencilProductTest {
         product.setPrice(EIGHTY);
 
         returnToThePresent();
+
+        /*
+         * A new price in the valid promo range for both the original and
+         * promo price
+         */
         product.setPrice(SEVENTY_FIVE);
 
         assertFalse(product.isPromoted());
+    }
+
+    @Test
+    public void canStartNewPromotion30DaysAfterTheLastOne() {
+        travelThroughTime(-60);
+        product.setPrice(SEVENTY_FIVE);
+
+        returnToThePresent();
+        waitAnHour(); // Move past end of 30 day grace period.
+
+        /*
+         * A new price that is less than 70% of original and more than 70%
+         * of promo price.
+         */
+        product.setPrice(SIXTY_FIVE);
+        assertTrue(product.isPromoted());
     }
 
     @After
@@ -174,5 +197,9 @@ public class RedPencilProductTest {
 
     private void travelThroughTime(int daysToTravel) {
         timestampGenerator.addDaysToCurrentTimestamp(daysToTravel);
+    }
+
+    private void waitAnHour() {
+        timestampGenerator.addHoursToCurrentTimestamp(1);
     }
 }

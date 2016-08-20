@@ -20,4 +20,8 @@ class MockTimestampGenerator extends TimestampGenerator {
     void addDaysToCurrentTimestamp(int days) {
         this.currentTimestamp = this.currentTimestamp.plusDays(days);
     }
+
+    void addHoursToCurrentTimestamp(int hours) {
+        this.currentTimestamp = this.currentTimestamp.plusHours(hours);
+    }
 }
