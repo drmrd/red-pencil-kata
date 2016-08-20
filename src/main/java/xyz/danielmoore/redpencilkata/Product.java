@@ -35,6 +35,7 @@ class Product {
     private TimestampGenerator timestampGenerator;
     private OffsetDateTime lastUpdated;
     private OffsetDateTime promotionStartTimestamp;
+    private OffsetDateTime lastPromotionEndTimestamp;
     private boolean isPromoted;
 
     Product(BigDecimal price, TimestampGenerator timestampGenerator) {
@@ -43,6 +44,14 @@ class Product {
         this.preSalePrice = this.price;
         this.timestampGenerator = timestampGenerator;
         this.lastUpdated = timestampGenerator.getCurrentTimestamp();
+        this.promotionStartTimestamp = this.lastUpdated;
+        /*
+         * The kata doesn't say what to do in the first 30 days explicitly,
+         * but we prevent promotions in the first 30 days to prevent vendors
+         * from circumventing promotion rules by repeatedly creating new
+         * products and discounting them immediately.
+         */
+        this.lastPromotionEndTimestamp = this.lastUpdated;
         this.isPromoted = false;
     }
 
@@ -63,6 +72,10 @@ class Product {
         } else if (priceChangeShouldEndPromotion(price)) {
             this.isPromoted = false;
             this.preSalePrice = price;
+            OffsetDateTime normalPromotionEndTimestamp = this.promotionStartTimestamp.plusDays(30);
+            this.lastPromotionEndTimestamp = (updatedTimestamp
+                    .isBefore(normalPromotionEndTimestamp)) ?
+                    updatedTimestamp : normalPromotionEndTimestamp;
         }
 
         this.price = price;
@@ -73,14 +86,27 @@ class Product {
         return lastUpdated;
     }
 
+    OffsetDateTime getLastPromotionEndDate() {
+        return lastPromotionEndTimestamp;
+    }
+
     boolean isPromoted() {
-        if (promotionHasExpired()) {
+        if (!(isPromoted && mostRecentPromotionStartedInLast30Days())) {
             isPromoted = false;
+            this.preSalePrice = price;
+            OffsetDateTime currentTimestamp = timestampGenerator
+                    .getCurrentTimestamp();
+            OffsetDateTime normalPromotionEndTimestamp = this.promotionStartTimestamp.plusDays(30);
+
+            this.lastPromotionEndTimestamp = (currentTimestamp
+                    .isBefore(normalPromotionEndTimestamp)) ?
+                    currentTimestamp : normalPromotionEndTimestamp;
         }
         return isPromoted;
     }
 
     private boolean priceChangeShouldEndPromotion(BigDecimal price) {
+        if (!this.isPromoted()) return false;
         return this.price.compareTo(price) < 0 ||
                 !priceChangeIsAtMost30Percent(preSalePrice, price);
     }
@@ -90,12 +116,16 @@ class Product {
                 .getCurrentTimestamp().minusDays(30));
     }
 
-    private boolean promotionHasExpired() {
-        return !(isPromoted && mostRecentPromotionStartedInLast30Days());
+    private boolean lastPromotionExpiredOver30DaysAgo() {
+        if (this.isPromoted()) return false;
+        return lastPromotionEndTimestamp == null ||
+                lastPromotionEndTimestamp.isBefore(timestampGenerator
+                        .getCurrentTimestamp().minusDays(30));
     }
 
     private boolean priceChangeShouldCausePromotion(BigDecimal newPrice) {
         return !this.isPromoted() && this.hasStablePrice() &&
+                this.lastPromotionExpiredOver30DaysAgo() &&
                 this.priceChangeIsWithinBounds(newPrice);
     }
 

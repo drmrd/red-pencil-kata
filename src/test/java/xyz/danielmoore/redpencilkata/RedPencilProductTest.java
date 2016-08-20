@@ -151,6 +151,17 @@ public class RedPencilProductTest {
         assertFalse(product.isPromoted());
     }
 
+    @Test
+    public void cantStartNewPromotionWithin30DaysOfLastOne() {
+        travelThroughTime(-59);
+        product.setPrice(EIGHTY);
+
+        returnToThePresent();
+        product.setPrice(SEVENTY_FIVE);
+
+        assertFalse(product.isPromoted());
+    }
+
     @After
     public void tearDown() {
         product = null;
