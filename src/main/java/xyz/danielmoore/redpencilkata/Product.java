@@ -1,47 +1,27 @@
 package xyz.danielmoore.redpencilkata;
 
-import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 /**
- * A basic product class for tracking the price of a product and the most
- * recent time at which the product's price changed.
+ * A basic product class for tracking the value of a product and the most
+ * recent time at which the product's value changed.
  */
 class Product {
     /**
-     * The current price of the product. Storing using BigDecimal gives us
-     * access to convenient arithmetic operations, rounding support, etc.
+     * The current value of the product.
      */
-    private BigDecimal price;
-    private BigDecimal preSalePrice;
-
-    /**
-     * The current rounding mode used in price calculations. ROUND_HALF_EVEN
-     * is also known as banker's rounding and is the standard in currency
-     * calculations.
-     */
-    private static final int ROUNDING_MODE = BigDecimal.ROUND_HALF_EVEN;
-
-    /**
-     * The decimal place to which prices should be rounded. The BigDecimal and
-     * Currency packages make this easy to localize by, e.g., creating a
-     * CURRENCY_NAME variable (example: "USD") and setting CURRENCY_PRECISION
-     * equal to getInstance(CURRENCY_NAME).getDefaultFractionDigits().
-     */
-    private static final int CURRENCY_PRECISION = 2;
-    // The number of decimal places to round when dividing BigDecimals.
-    private static final int DIVISION_PRECISION = 4;
+    private Price price;
+    private Price preSalePrice;
 
     private TimestampGenerator timestampGenerator;
     private OffsetDateTime lastUpdated;
     private OffsetDateTime promotionStartTimestamp;
     private OffsetDateTime lastPromotionEndTimestamp;
+
     private boolean isPromoted;
 
-    Product(BigDecimal price, TimestampGenerator timestampGenerator) {
-        // Round the input price to the nearest cent before use
-        this.price = price.setScale(CURRENCY_PRECISION, ROUNDING_MODE);
-        this.preSalePrice = this.price;
+    Product(Price price, TimestampGenerator timestampGenerator) {
+        this.price = this.preSalePrice = price;
         this.timestampGenerator = timestampGenerator;
         this.lastUpdated = timestampGenerator.getCurrentTimestamp();
         this.promotionStartTimestamp = this.lastUpdated;
@@ -55,13 +35,11 @@ class Product {
         this.isPromoted = false;
     }
 
-    BigDecimal getPrice() {
+    Price getPrice() {
         return price;
     }
 
-    void setPrice(BigDecimal price) {
-        price = price.setScale(CURRENCY_PRECISION, ROUNDING_MODE);
-
+    void setPrice(Price price) {
         OffsetDateTime updatedTimestamp = timestampGenerator
                 .getCurrentTimestamp();
         if (priceChangeShouldCausePromotion(price)) {
@@ -86,10 +64,6 @@ class Product {
         return lastUpdated;
     }
 
-    OffsetDateTime getLastPromotionEndDate() {
-        return lastPromotionEndTimestamp;
-    }
-
     boolean isPromoted() {
         if (!(isPromoted && mostRecentPromotionStartedInLast30Days())) {
             isPromoted = false;
@@ -105,10 +79,10 @@ class Product {
         return isPromoted;
     }
 
-    private boolean priceChangeShouldEndPromotion(BigDecimal price) {
+    private boolean priceChangeShouldEndPromotion(Price newPrice) {
         if (!this.isPromoted()) return false;
-        return this.price.compareTo(price) < 0 ||
-                !priceChangeIsAtMost30Percent(preSalePrice, price);
+        return price.isLessThan(newPrice) ||
+                !priceChangeIsAtMost30Percent(preSalePrice, newPrice);
     }
 
     private boolean mostRecentPromotionStartedInLast30Days() {
@@ -123,35 +97,26 @@ class Product {
                         .getCurrentTimestamp().minusDays(30));
     }
 
-    private boolean priceChangeShouldCausePromotion(BigDecimal newPrice) {
-        return !this.isPromoted() && this.hasStablePrice() &&
+    private boolean priceChangeShouldCausePromotion(Price newPrice) {
+        return !this.isPromoted() && this.isStablyPriced() &&
                 this.lastPromotionExpiredOver30DaysAgo() &&
                 this.priceChangeIsWithinBounds(newPrice);
     }
 
-    private boolean hasStablePrice() {
-        /*
-         * TODO: Make sure that this also works within 30 days of product
-         *       creation. (Ambiguous in kata instructions how to handle.)
-         */
+    private boolean isStablyPriced() {
         return this.lastUpdated.isBefore(timestampGenerator.getCurrentTimestamp().minusDays(30));
     }
 
-    private static boolean priceChangeIsAtMost30Percent(BigDecimal oldPrice,
-                                                        BigDecimal newPrice) {
-        BigDecimal relativeDifference = newPrice.divide(oldPrice,
-                DIVISION_PRECISION, ROUNDING_MODE);
-
-        return relativeDifference.compareTo(new BigDecimal(".70")) >= 0;
+    private static boolean priceChangeIsAtMost30Percent(Price oldPrice,
+                                                        Price newPrice) {
+        return Price.absoluteDifference(oldPrice, newPrice)
+                .isAtMostPercentOfPrice(30, oldPrice);
     }
 
-    private boolean priceChangeIsWithinBounds(BigDecimal newPrice) {
-        if (this.price.compareTo(newPrice) > 0) {
-            BigDecimal relativeDifference = newPrice.divide(this.price,
-                    DIVISION_PRECISION, ROUNDING_MODE);
-            return relativeDifference.compareTo(new BigDecimal(".95")) <= 0
-                    && relativeDifference.compareTo(new BigDecimal(".70")) >= 0;
-        }
-        return false;
+    private boolean priceChangeIsWithinBounds(Price newPrice) {
+        Price difference = Price.absoluteDifference(this.price, newPrice);
+
+        return difference.isAtMostPercentOfPrice(30, this.price) &&
+                difference.isAtLeastPercentOfPrice(5, this.price);
     }
 }

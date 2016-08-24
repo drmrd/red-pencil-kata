@@ -12,26 +12,25 @@ import static org.junit.Assert.*;
 
 public class RedPencilProductTest {
 
-    private final BigDecimal TWO_HUNDRED = new BigDecimal("200.00");
-    private final BigDecimal ONE_HUNDRED = new BigDecimal("100.00");
-    private final BigDecimal EIGHTY = new BigDecimal("80.00");
-    private final BigDecimal SEVENTY_FIVE = new BigDecimal("75.00");
-    private final BigDecimal SIXTY_FIVE = new BigDecimal("65.00");
+    private final Price TWO_HUNDRED = new Price(200);
+    private final Price ONE_HUNDRED = new Price(100);
+    private final Price EIGHTY = new Price(80);
+    private final Price SEVENTY_FIVE = new Price(75);
+    private final Price SIXTY_FIVE = new Price(65);
 
     private final OffsetDateTime NOW = OffsetDateTime.now();
 
     private Product product;
-    private BigDecimal price;
+    private Price price;
     private MockTimestampGenerator timestampGenerator;
     private OffsetDateTime creationTime;
-    private OffsetDateTime currentTime;
 
     @Before
     public void setUp() throws Exception {
         this.timestampGenerator = new MockTimestampGenerator();
         this.price = ONE_HUNDRED;
 
-        // Set the price update time to January 1st, 2016 at 12AM GMT
+        // Set the value update time to January 1st, 2016 at 12AM GMT
         this.creationTime = OffsetDateTime.of(2016, 1, 1, 0, 0, 0, 0,
                 ZoneOffset.ofHours(0));
 
@@ -88,13 +87,13 @@ public class RedPencilProductTest {
 
     @Test
     public void changingPriceLessThan5PercentDoesNotLeadToPromotion() {
-        product.setPrice(new BigDecimal("95.01"));
+        product.setPrice(new Price(new BigDecimal("95.01")));
         assertFalse(product.isPromoted());
     }
 
     @Test
     public void changingPriceMoreThan30PercentDoesNotLeadToPromotion() {
-        product.setPrice(new BigDecimal("69.9"));
+        product.setPrice(new Price(new BigDecimal("69.9")));
         assertFalse(product.isPromoted());
     }
 
@@ -104,7 +103,7 @@ public class RedPencilProductTest {
         product.setPrice(TWO_HUNDRED);
         assertFalse(product.isPromoted());
 
-        BigDecimal cheatingPromoPrice = new BigDecimal("140.00");
+        Price cheatingPromoPrice = new Price(new BigDecimal("140.00"));
         returnToThePresent();
         product.setPrice(cheatingPromoPrice);
         assertFalse(product.isPromoted());
@@ -146,7 +145,7 @@ public class RedPencilProductTest {
 
         /*
          * Set product to an amount less than 70% of original and more than 70%
-         * of promo price
+         * of promo value
          */
         product.setPrice(SIXTY_FIVE);
 
@@ -161,8 +160,8 @@ public class RedPencilProductTest {
         returnToThePresent();
 
         /*
-         * A new price in the valid promo range for both the original and
-         * promo price
+         * A new value in the valid promo range for both the original and
+         * promo value
          */
         product.setPrice(SEVENTY_FIVE);
 
@@ -178,8 +177,8 @@ public class RedPencilProductTest {
         waitAnHour(); // Move past end of 30 day grace period.
 
         /*
-         * A new price that is less than 70% of original and more than 70%
-         * of promo price.
+         * A new value that is less than 70% of original and more than 70%
+         * of promo value.
          */
         product.setPrice(SIXTY_FIVE);
         assertTrue(product.isPromoted());
