@@ -3,13 +3,12 @@ package xyz.danielmoore.redpencilkata;
 
 import java.time.OffsetDateTime;
 
-class TimestampGenerator {
+class DateGenerator {
 
     /**
-     * Return a timestamp for the current instant.
+     * Return the date/time for the current instant.
      */
-    OffsetDateTime getCurrentTimestamp() {
+    OffsetDateTime getCurrentDate() {
         return OffsetDateTime.now();
     }
-
 }

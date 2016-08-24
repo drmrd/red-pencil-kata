@@ -22,22 +22,22 @@ public class RedPencilProductTest {
 
     private Product product;
     private Price price;
-    private MockTimestampGenerator timestampGenerator;
+    private MockDateGenerator dateGenerator;
     private OffsetDateTime creationTime;
 
     @Before
     public void setUp() throws Exception {
-        this.timestampGenerator = new MockTimestampGenerator();
+        this.dateGenerator = new MockDateGenerator();
         this.price = ONE_HUNDRED;
 
         // Set the value update time to January 1st, 2016 at 12AM GMT
         this.creationTime = OffsetDateTime.of(2016, 1, 1, 0, 0, 0, 0,
                 ZoneOffset.ofHours(0));
 
-        timestampGenerator.setCurrentTimestamp(creationTime);
-        product = new Product(price, timestampGenerator);
+        dateGenerator.setCurrentDate(creationTime);
+        product = new Product(price, dateGenerator);
 
-        // Set the timestampGenerator equal to NOW
+        // Set the dateGenerator equal to NOW
         returnToThePresent();
     }
 
@@ -191,14 +191,14 @@ public class RedPencilProductTest {
     }
 
     private void returnToThePresent() {
-        timestampGenerator.setCurrentTimestamp(NOW);
+        dateGenerator.setCurrentDate(NOW);
     }
 
     private void travelThroughTime(int daysToTravel) {
-        timestampGenerator.addDaysToCurrentTimestamp(daysToTravel);
+        dateGenerator.addDaysToCurrentDate(daysToTravel);
     }
 
     private void waitAnHour() {
-        timestampGenerator.addHoursToCurrentTimestamp(1);
+        dateGenerator.addHoursToCurrentDate(1);
     }
 }
