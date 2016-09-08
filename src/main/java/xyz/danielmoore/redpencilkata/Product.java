@@ -18,20 +18,17 @@ class Product {
 
     private Promotion promotion;
 
-    private boolean isPromoted;
-
     Product(Price price, DateGenerator dateGenerator) {
         this.price = this.preSalePrice = price;
         this.dateGenerator = dateGenerator;
         this.lastPriceChangeDate = dateGenerator.getCurrentDate();
+
         /*
          * The kata doesn't say what to do in the first 30 days explicitly,
          * but we prevent promotions in the first 30 days to prevent vendors
          * from circumventing promotion rules by repeatedly creating new
          * products and discounting them immediately.
          */
-        this.isPromoted = false;
-
         this.promotion = new Promotion(dateGenerator);
     }
 
@@ -39,18 +36,20 @@ class Product {
         return price;
     }
 
-    void setPrice(Price price) {
-        OffsetDateTime today = dateGenerator.getCurrentDate();
-        if (priceChangeShouldCausePromotion(price)) {
-            this.isPromoted = true;
+    private void updatePromotionStatus(Price newPrice) {
+        if (priceChangeShouldCausePromotion(newPrice)) {
             this.preSalePrice = this.price;
-
             this.promotion = new Promotion(dateGenerator);
-        } else if (priceChangeShouldEndPromotion(price)) {
-            this.isPromoted = false;
-            this.preSalePrice = price;
+        } else if (priceChangeShouldEndPromotion(newPrice)) {
+            this.preSalePrice = newPrice;
             this.promotion.endNow();
         }
+    }
+
+    void setPrice(Price price) {
+        OffsetDateTime today = dateGenerator.getCurrentDate();
+
+        updatePromotionStatus(price);
 
         this.price = price;
         this.lastPriceChangeDate = today;
@@ -61,11 +60,7 @@ class Product {
     }
 
     boolean isPromoted() {
-        if (!(isPromoted && mostRecentPromotionStartedInLast30Days())) {
-            isPromoted = false;
-            this.preSalePrice = price;
-        }
-        return isPromoted;
+        return this.promotion.isActive();
     }
 
     private boolean priceChangeShouldEndPromotion(Price newPrice) {
