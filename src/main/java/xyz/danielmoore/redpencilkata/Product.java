@@ -35,15 +35,8 @@ class Product {
     Price getPrice() {
         return price;
     }
-
-    private void updatePromotionStatus(Price newPrice) {
-        if (priceChangeShouldCausePromotion(newPrice)) {
-            this.preSalePrice = this.price;
-            this.promotion = new Promotion(dateGenerator);
-        } else if (priceChangeShouldEndPromotion(newPrice)) {
-            this.preSalePrice = newPrice;
-            this.promotion.endNow();
-        }
+    OffsetDateTime getPriceUpdateTime() {
+        return lastPriceChangeDate;
     }
 
     void setPrice(Price price) {
@@ -55,8 +48,14 @@ class Product {
         this.lastPriceChangeDate = today;
     }
 
-    OffsetDateTime getPriceUpdateTime() {
-        return lastPriceChangeDate;
+    private void updatePromotionStatus(Price newPrice) {
+        if (priceChangeShouldCausePromotion(newPrice)) {
+            this.preSalePrice = this.price;
+            this.promotion = new Promotion(dateGenerator);
+        } else if (priceChangeShouldEndPromotion(newPrice)) {
+            this.preSalePrice = newPrice;
+            this.promotion.endNow();
+        }
     }
 
     boolean isPromoted() {
@@ -69,12 +68,7 @@ class Product {
                 !priceChangeIsAtMost30Percent(preSalePrice, newPrice);
     }
 
-    private boolean mostRecentPromotionStartedInLast30Days() {
-        return promotion.getStartDate().isAfter(dateGenerator
-                .getCurrentDate().minusDays(30));
-    }
-
-    private boolean lastPromotionExpiredOver30DaysAgo() {
+    private boolean promotionGracePeriodIsOver() {
         if (this.isPromoted()) return false;
         return promotion.getEndDate() == null ||
                 promotion.getEndDate().isBefore(dateGenerator
@@ -83,24 +77,25 @@ class Product {
 
     private boolean priceChangeShouldCausePromotion(Price newPrice) {
         return !this.isPromoted() && this.isStablyPriced() &&
-                this.lastPromotionExpiredOver30DaysAgo() &&
-                this.priceChangeIsWithinBounds(newPrice);
+                this.promotionGracePeriodIsOver() &&
+                priceChangeIsAtLeast5Percent(this.price, newPrice) &&
+                priceChangeIsAtMost30Percent(this.price, newPrice);
     }
 
     private boolean isStablyPriced() {
-        return this.lastPriceChangeDate.isBefore(dateGenerator.getCurrentDate().minusDays(30));
+        return this.lastPriceChangeDate.isBefore(dateGenerator.getCurrentDate()
+                .minusDays(30));
+    }
+
+    private static boolean priceChangeIsAtLeast5Percent(Price oldPrice,
+                                                        Price newPrice) {
+        return Price.absoluteDifference(oldPrice, newPrice)
+                .isAtLeastPercentOfPrice(5, oldPrice);
     }
 
     private static boolean priceChangeIsAtMost30Percent(Price oldPrice,
                                                         Price newPrice) {
         return Price.absoluteDifference(oldPrice, newPrice)
                 .isAtMostPercentOfPrice(30, oldPrice);
-    }
-
-    private boolean priceChangeIsWithinBounds(Price newPrice) {
-        Price difference = Price.absoluteDifference(this.price, newPrice);
-
-        return difference.isAtMostPercentOfPrice(30, this.price) &&
-                difference.isAtLeastPercentOfPrice(5, this.price);
     }
 }
