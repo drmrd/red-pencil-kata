@@ -186,10 +186,34 @@ public class RedPencilProductTest {
 
     @Test
     public void priceChangesInFirst30DaysDoNotStartPromotions() {
-        dateGenerator.setCurrentDate(creationTime.plusDays(15));
+        travelThroughTime(creationTime.plusDays(15));
         product.setPrice(SEVENTY_FIVE);
 
         assertFalse(product.isPromoted());
+    }
+
+    @Test
+    public void newProductsDoNotBeginPromoted() {
+        travelThroughTime(creationTime);
+        assertFalse(product.isPromoted());
+
+        waitAnHour();
+        assertFalse(product.isPromoted());
+    }
+
+    @Test
+    public void canStartNewPromotion30DaysAfterLastPromotionBrokeRules() {
+        travelThroughTime(-30);
+        product.setPrice(SEVENTY_FIVE); // Promotion-inducing price change
+        product.setPrice(SIXTY_FIVE); // Price change violating promotion rules
+        assertFalse(product.isPromoted());
+
+        product.setPrice(ONE_HUNDRED); // Reset product price (for clarity)
+
+        returnToThePresent();
+        waitAnHour();
+        product.setPrice(SEVENTY_FIVE);
+        assertTrue(product.isPromoted());
     }
 
     @After
@@ -204,6 +228,10 @@ public class RedPencilProductTest {
 
     private void travelThroughTime(int daysToTravel) {
         dateGenerator.addDaysToCurrentDate(daysToTravel);
+    }
+
+    private void travelThroughTime(OffsetDateTime specificDate) {
+        dateGenerator.setCurrentDate(specificDate);
     }
 
     private void waitAnHour() {
