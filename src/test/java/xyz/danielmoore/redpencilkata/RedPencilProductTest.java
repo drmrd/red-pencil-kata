@@ -184,6 +184,14 @@ public class RedPencilProductTest {
         assertTrue(product.isPromoted());
     }
 
+    @Test
+    public void priceChangesInFirst30DaysDoNotStartPromotions() {
+        dateGenerator.setCurrentDate(creationTime.plusDays(15));
+        product.setPrice(SEVENTY_FIVE);
+
+        assertFalse(product.isPromoted());
+    }
+
     @After
     public void tearDown() {
         product = null;

@@ -30,6 +30,7 @@ class Product {
          * products and discounting them immediately.
          */
         this.promotion = new Promotion(dateGenerator);
+        this.promotion.endNow();
     }
 
     Price getPrice() {
