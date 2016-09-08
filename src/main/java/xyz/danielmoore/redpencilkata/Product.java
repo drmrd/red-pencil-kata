@@ -14,8 +14,7 @@ class Product {
     private Price preSalePrice;
 
     private DateGenerator dateGenerator;
-    private OffsetDateTime lastUpdated;
-    private OffsetDateTime lastPromotionEndDate;
+    private OffsetDateTime lastPriceChangeDate;
 
     private Promotion promotion;
 
@@ -24,14 +23,13 @@ class Product {
     Product(Price price, DateGenerator dateGenerator) {
         this.price = this.preSalePrice = price;
         this.dateGenerator = dateGenerator;
-        this.lastUpdated = dateGenerator.getCurrentDate();
+        this.lastPriceChangeDate = dateGenerator.getCurrentDate();
         /*
          * The kata doesn't say what to do in the first 30 days explicitly,
          * but we prevent promotions in the first 30 days to prevent vendors
          * from circumventing promotion rules by repeatedly creating new
          * products and discounting them immediately.
          */
-        this.lastPromotionEndDate = this.lastUpdated;
         this.isPromoted = false;
 
         this.promotion = new Promotion(dateGenerator);
@@ -51,29 +49,21 @@ class Product {
         } else if (priceChangeShouldEndPromotion(price)) {
             this.isPromoted = false;
             this.preSalePrice = price;
-            OffsetDateTime expectedEndDate = promotion.getEndDate();
-            this.lastPromotionEndDate = (today.isBefore(expectedEndDate)) ?
-                    today : expectedEndDate;
+            this.promotion.endNow();
         }
 
         this.price = price;
-        this.lastUpdated = today;
+        this.lastPriceChangeDate = today;
     }
 
     OffsetDateTime getPriceUpdateTime() {
-        return lastUpdated;
+        return lastPriceChangeDate;
     }
 
     boolean isPromoted() {
         if (!(isPromoted && mostRecentPromotionStartedInLast30Days())) {
             isPromoted = false;
             this.preSalePrice = price;
-            OffsetDateTime today = dateGenerator.getCurrentDate();
-            OffsetDateTime expectedEndDate = promotion.getEndDate();
-
-            this.lastPromotionEndDate = (today
-                    .isBefore(expectedEndDate)) ?
-                    today : expectedEndDate;
         }
         return isPromoted;
     }
@@ -91,8 +81,8 @@ class Product {
 
     private boolean lastPromotionExpiredOver30DaysAgo() {
         if (this.isPromoted()) return false;
-        return lastPromotionEndDate == null ||
-                lastPromotionEndDate.isBefore(dateGenerator
+        return promotion.getEndDate() == null ||
+                promotion.getEndDate().isBefore(dateGenerator
                         .getCurrentDate().minusDays(30));
     }
 
@@ -103,7 +93,7 @@ class Product {
     }
 
     private boolean isStablyPriced() {
-        return this.lastUpdated.isBefore(dateGenerator.getCurrentDate().minusDays(30));
+        return this.lastPriceChangeDate.isBefore(dateGenerator.getCurrentDate().minusDays(30));
     }
 
     private static boolean priceChangeIsAtMost30Percent(Price oldPrice,
