@@ -67,7 +67,7 @@ class Product {
 
     private boolean eligibleForPromotion(Price newPrice) {
         return !this.isPromoted() && this.isStablyPriced() &&
-                this.promotionGracePeriodIsOver() &&
+                promotion.gracePeriodIsOver() &&
                 priceChangeIsAtLeast5Percent(this.price, newPrice) &&
                 priceChangeIsAtMost30Percent(this.price, newPrice);
     }
@@ -75,13 +75,6 @@ class Product {
     private boolean isStablyPriced() {
         return this.lastPriceChangeDate.isBefore(dateGenerator.getCurrentDate()
                 .minusDays(30));
-    }
-
-    private boolean promotionGracePeriodIsOver() {
-        if (this.isPromoted()) return false;
-        return promotion.getEndDate() == null ||
-                promotion.getEndDate().isBefore(dateGenerator
-                        .getCurrentDate().minusDays(30));
     }
 
     private static boolean priceChangeIsAtLeast5Percent(Price oldPrice,
