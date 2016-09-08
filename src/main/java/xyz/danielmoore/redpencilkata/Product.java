@@ -15,8 +15,9 @@ class Product {
 
     private DateGenerator dateGenerator;
     private OffsetDateTime lastUpdated;
-    private OffsetDateTime promotionStartDate;
     private OffsetDateTime lastPromotionEndDate;
+
+    private Promotion promotion;
 
     private boolean isPromoted;
 
@@ -24,7 +25,6 @@ class Product {
         this.price = this.preSalePrice = price;
         this.dateGenerator = dateGenerator;
         this.lastUpdated = dateGenerator.getCurrentDate();
-        this.promotionStartDate = this.lastUpdated;
         /*
          * The kata doesn't say what to do in the first 30 days explicitly,
          * but we prevent promotions in the first 30 days to prevent vendors
@@ -33,6 +33,8 @@ class Product {
          */
         this.lastPromotionEndDate = this.lastUpdated;
         this.isPromoted = false;
+
+        this.promotion = new Promotion(dateGenerator);
     }
 
     Price getPrice() {
@@ -44,12 +46,12 @@ class Product {
         if (priceChangeShouldCausePromotion(price)) {
             this.isPromoted = true;
             this.preSalePrice = this.price;
-            this.promotionStartDate = today;
-            // Insert other promo handling code here as needed.
+
+            this.promotion = new Promotion(dateGenerator);
         } else if (priceChangeShouldEndPromotion(price)) {
             this.isPromoted = false;
             this.preSalePrice = price;
-            OffsetDateTime expectedEndDate = this.promotionStartDate.plusDays(30);
+            OffsetDateTime expectedEndDate = promotion.getEndDate();
             this.lastPromotionEndDate = (today.isBefore(expectedEndDate)) ?
                     today : expectedEndDate;
         }
@@ -67,7 +69,7 @@ class Product {
             isPromoted = false;
             this.preSalePrice = price;
             OffsetDateTime today = dateGenerator.getCurrentDate();
-            OffsetDateTime expectedEndDate = this.promotionStartDate.plusDays(30);
+            OffsetDateTime expectedEndDate = promotion.getEndDate();
 
             this.lastPromotionEndDate = (today
                     .isBefore(expectedEndDate)) ?
@@ -83,7 +85,7 @@ class Product {
     }
 
     private boolean mostRecentPromotionStartedInLast30Days() {
-        return promotionStartDate.isAfter(dateGenerator
+        return promotion.getStartDate().isAfter(dateGenerator
                 .getCurrentDate().minusDays(30));
     }
 

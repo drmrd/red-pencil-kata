@@ -7,6 +7,8 @@ import java.time.OffsetDateTime;
  */
 public class Promotion {
 
+    private static final int PROMOTION_LENGTH_IN_DAYS = 30;
+
     private DateGenerator dateGenerator;
     private final OffsetDateTime startDate;
     private OffsetDateTime endDate;
@@ -14,6 +16,9 @@ public class Promotion {
     Promotion(DateGenerator dateGenerator) {
         this.dateGenerator = dateGenerator;
         this.startDate = dateGenerator.getCurrentDate();
-        this.endDate = this.startDate.plusDays(30);
+        this.endDate = this.startDate.plusDays(PROMOTION_LENGTH_IN_DAYS);
     }
+
+    public OffsetDateTime getStartDate() { return startDate; }
+    public OffsetDateTime getEndDate() { return endDate; }
 }
