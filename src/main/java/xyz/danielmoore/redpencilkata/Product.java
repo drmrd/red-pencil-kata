@@ -39,6 +39,7 @@ class Product {
     OffsetDateTime getPriceUpdateTime() {
         return lastPriceChangeDate;
     }
+    boolean isPromoted() { return this.promotion.isActive(); }
 
     void setPrice(Price price) {
         OffsetDateTime today = dateGenerator.getCurrentDate();
@@ -50,33 +51,21 @@ class Product {
     }
 
     private void updatePromotionStatus(Price newPrice) {
-        if (priceChangeShouldCausePromotion(newPrice)) {
-            this.preSalePrice = this.price;
-            this.promotion = new Promotion(dateGenerator);
-        } else if (priceChangeShouldEndPromotion(newPrice)) {
+        if (isPromoted() && priceChangeBreaksPromotionRules(newPrice)) {
             this.preSalePrice = newPrice;
             this.promotion.endNow();
+        } else if (eligibleForPromotion(newPrice)) {
+            this.preSalePrice = this.price;
+            this.promotion = new Promotion(dateGenerator);
         }
     }
 
-    boolean isPromoted() {
-        return this.promotion.isActive();
-    }
-
-    private boolean priceChangeShouldEndPromotion(Price newPrice) {
-        if (!this.isPromoted()) return false;
+    private boolean priceChangeBreaksPromotionRules(Price newPrice) {
         return price.isLessThan(newPrice) ||
                 !priceChangeIsAtMost30Percent(preSalePrice, newPrice);
     }
 
-    private boolean promotionGracePeriodIsOver() {
-        if (this.isPromoted()) return false;
-        return promotion.getEndDate() == null ||
-                promotion.getEndDate().isBefore(dateGenerator
-                        .getCurrentDate().minusDays(30));
-    }
-
-    private boolean priceChangeShouldCausePromotion(Price newPrice) {
+    private boolean eligibleForPromotion(Price newPrice) {
         return !this.isPromoted() && this.isStablyPriced() &&
                 this.promotionGracePeriodIsOver() &&
                 priceChangeIsAtLeast5Percent(this.price, newPrice) &&
@@ -86,6 +75,13 @@ class Product {
     private boolean isStablyPriced() {
         return this.lastPriceChangeDate.isBefore(dateGenerator.getCurrentDate()
                 .minusDays(30));
+    }
+
+    private boolean promotionGracePeriodIsOver() {
+        if (this.isPromoted()) return false;
+        return promotion.getEndDate() == null ||
+                promotion.getEndDate().isBefore(dateGenerator
+                        .getCurrentDate().minusDays(30));
     }
 
     private static boolean priceChangeIsAtLeast5Percent(Price oldPrice,
