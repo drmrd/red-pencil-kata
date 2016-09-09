@@ -12,3 +12,10 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
+
+test {
+    testLogging {
+        displayGranularity 3 // Only display test names (omit test class, etc.)
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
+}
