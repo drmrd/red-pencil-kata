@@ -7,15 +7,20 @@ import java.time.OffsetDateTime;
  * recent time at which the product's value changed.
  */
 class Product {
-    /**
-     * The current value of the product.
-     */
+
+    /** The current value of the product. */
     private Price price;
+    /** The price of the product before the most recent/current promotion. */
     private Price preSalePrice;
 
+    /**
+     * A timestamp-generating class instance used to track the date and time
+     * of each price change of the product.
+     */
     private DateGenerator dateGenerator;
     private OffsetDateTime lastPriceChangeDate;
 
+    /** The product's most recent (or current) Red Pencil promotion. */
     private Promotion promotion;
 
     Product(Price price, DateGenerator dateGenerator) {
@@ -24,10 +29,9 @@ class Product {
         this.lastPriceChangeDate = dateGenerator.getCurrentDate();
 
         /*
-         * The kata doesn't say what to do in the first 30 days explicitly,
-         * but we prevent promotions in the first 30 days to prevent vendors
-         * from circumventing promotion rules by repeatedly creating new
-         * products and discounting them immediately.
+         * We prevent promotions during the first 30 days after creating a
+         * product to avoid vendors circumventing promotion eligibility rules by
+         * repeatedly creating and discounting product pages for the same good.
          */
         this.promotion = new Promotion(dateGenerator);
         this.promotion.endNow();
