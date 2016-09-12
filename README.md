@@ -1,8 +1,31 @@
 # Red Pencil Kata #
 
+## Description ##
+
 This repository contains my test-driven and Java-based solution to
 Stefan Rock's
 [Red Pencil Kata](https://stefanroock.wordpress.com/2011/03/04/red-pencil-code-kata/).
+As described there, the kata tasks us with creating rules for
+automatically activating and deactivating "Red Pencil" promotions for
+products in an online marketplace. These are month-long (30 day)
+promotions that begin when a seller reduces the price of a
+product. Since this system is easily exploitable by sellers to keep
+their products featured on the marketplace for longer periods than
+intended, a number of additional rules are imposed on the promotions,
+including each of the following:
+
+  * The price reduction needs to be at least 5% and at most 30% of the
+    previous price.
+  * Additional price reductions during a promotion do not extend the
+    promotion's length.
+  * Increasing the price of the product will instantly terminate an
+    active promotion.
+  * Decreasing the price of a product so that the new price is less
+    than 30% of its pre-sale price will also end the promotion.
+  * Promotions are only activated on a price change if the product's
+    price has been stable for 30 days prior to the price reduction.
+  * The minimum length of time between two promotions for the same
+    product is 30 days.
 
 ## Building and Testing from Source ##
 
