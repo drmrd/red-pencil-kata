@@ -1,13 +1,14 @@
 # Red Pencil Kata #
 
-## Description ##
-
 This repository contains my test-driven and Java-based solution to
 Stefan Rock's
 [Red Pencil Kata](https://stefanroock.wordpress.com/2011/03/04/red-pencil-code-kata/).
-As described there, the kata tasks us with creating rules for
-automatically activating and deactivating "Red Pencil" promotions for
-products in an online marketplace. These are month-long (30 day)
+
+## Kata Description ##
+
+As described in Stefan's blog post, the kata prompt is to create rules
+for automatically activating and deactivating "Red Pencil" promotions
+for products in an online marketplace. These are month-long (30 day)
 promotions that begin when a seller reduces the price of a
 product. Since this system is easily exploitable by sellers to keep
 their products featured on the marketplace for longer periods than
